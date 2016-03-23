@@ -2,55 +2,85 @@
 -- Author: Vic Fryzel
 -- http://github.com/vicfryzel/xmonad-config
 
-import System.IO
-import System.Exit
-import XMonad
-import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.ManageDocks
-import XMonad.Hooks.ManageHelpers
-import XMonad.Hooks.SetWMName
-import XMonad.Layout.Fullscreen
-import XMonad.Layout.NoBorders
-import XMonad.Layout.Spiral
-import XMonad.Layout.Tabbed
-import XMonad.Layout.ThreeColumns
-import XMonad.Util.Run(spawnPipe)
-import XMonad.Util.EZConfig(additionalKeys)
-import qualified XMonad.StackSet as W
-import qualified Data.Map        as M
+import qualified Data.Map                   as M
+import           System.Exit
+import           System.IO
+
+import           XMonad
+import           XMonad.Hooks.DynamicLog
+import           XMonad.Hooks.ManageDocks
+import           XMonad.Hooks.ManageHelpers
+import           XMonad.Hooks.SetWMName
+import           XMonad.Layout.Fullscreen
+import           XMonad.Layout.NoBorders
+import           XMonad.Layout.Spiral
+import           XMonad.Layout.Tabbed
+import           XMonad.Layout.ThreeColumns
+import qualified XMonad.StackSet            as W
+import           XMonad.Util.Run            (spawnPipe)
 
 
 ------------------------------------------------------------------------
--- Terminal
+-- | Terminal
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
---
-myTerminal = "/usr/bin/gnome-terminal"
+systemTerminal :: String
+systemTerminal = "konsole"
 
--- The command to lock the screen or show the screensaver.
-myScreensaver = "/usr/bin/gnome-screensaver-command --lock"
+-- | The command to lock the screen or show the screensaver.
+screensaver :: String
+screensaver = "xscreensaver-command --lock"
 
--- The command to take a selective screenshot, where you select
+-- | The command to take a selective screenshot, where you select
 -- what you'd like to capture on the screen.
-mySelectScreenshot = "select-screenshot"
+selectScreenshot :: String
+selectScreenshot = "select-screenshot"
 
--- The command to take a fullscreen screenshot.
-myScreenshot = "screenshot"
+-- | The command to take a fullscreen screenshot.
+screenshot :: String
+screenshot = "screenshot"
 
--- The command to use as a launcher, to launch commands that don't have
+-- | The command to use as a launcher, to launch commands that don't have
 -- preset keybindings.
-myLauncher = "$(yeganesh -x -- -fn '-*-terminus-*-r-normal-*-*-120-*-*-*-*-iso8859-*' -nb '#000000' -nf '#FFFFFF' -sb '#7C7C7C' -sf '#CEFFAC')"
+launcher :: String
+launcher = "$(yeganesh -x -- -fn '-*-terminus-*-r-normal-*-*-120-*-*-*-*-iso8859-*' -nb '#000000' -nf '#FFFFFF' -sb '#7C7C7C' -sf '#CEFFAC')"
 
+-- |Background
+-- Path to image used as background
+background :: String
+background = fehCommand ++ "~/Pictures/arch2.jpg"
+  where
+    fehCommand = "feh --bg-scale "
+
+-- | NetworkManager Applet
+nmapplet :: String
+nmapplet = "nm-applet"
+
+-- | Email Client
+emailClient :: String
+emailClient = "thunderbird"
+
+-- | Power Manager
+battery :: String
+battery = "xfce4-power-manager"
+
+-- | MousePad disable while typing
+syndaemon :: String
+syndaemon = "syndaemon -K -i 0.5 -m 100"
+
+-- | Setting dual monitors
+dualMonitorsCommand :: String
+dualMonitorsCommand = "xrandr --output VGA1 --primary --right-of HDMI2 --output HDMI2 --auto"
 
 ------------------------------------------------------------------------
--- Workspaces
+-- | Workspaces
 -- The default number of workspaces (virtual screens) and their names.
---
-myWorkspaces = ["1:term","2:web","3:code","4:vm","5:media"] ++ map show [6..9]
+myWorkspaces :: [String]
+myWorkspaces = ["1:web","2:code","3:media"] ++ map show [4..9] ++ ["0"]
 
 
 ------------------------------------------------------------------------
--- Window rules
+-- | Window rules
 -- Execute arbitrary actions and WindowSet manipulations when managing
 -- a new window. You can use this to, for example, always float a
 -- particular program, or have a client always appear on a particular
@@ -62,24 +92,21 @@ myWorkspaces = ["1:term","2:web","3:code","4:vm","5:media"] ++ map show [6..9]
 --
 -- To match on the WM_NAME, you can use 'title' in the same way that
 -- 'className' and 'resource' are used below.
---
 myManageHook = composeAll
-    [ className =? "Chromium"       --> doShift "2:web"
-    , className =? "Google-chrome"  --> doShift "2:web"
+    [ className =? "Firefox"        --> doShift "1:web"
+    , className =? "Telegram"       --> doShift "1:web"
+    , className =? "Thunderbird"    --> doShift "1:web"
+    , className =? "Emacs"          --> doShift "2:code"
+    , className =? "Eclipse"        --> doShift "2:code"
     , resource  =? "desktop_window" --> doIgnore
     , className =? "Galculator"     --> doFloat
     , className =? "Steam"          --> doFloat
-    , className =? "Gimp"           --> doFloat
-    , resource  =? "gpicview"       --> doFloat
-    , className =? "MPlayer"        --> doFloat
-    , className =? "VirtualBox"     --> doShift "4:vm"
-    , className =? "Xchat"          --> doShift "5:media"
+    , className =? "Vlc"            --> doShift "5:media"
     , className =? "stalonetray"    --> doIgnore
     , isFullscreen --> (doF W.focusDown <+> doFullFloat)]
 
-
 ------------------------------------------------------------------------
--- Layouts
+-- | Layouts
 -- You can specify and transform your layouts by modifying these values.
 -- If you change layout bindings be sure to use 'mod-shift-space' after
 -- restarting (with 'mod-q') to reset your layout state to the new
@@ -87,58 +114,61 @@ myManageHook = composeAll
 --
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
---
 myLayout = avoidStruts (
+    tabbed shrinkText tabConfig |||
     ThreeColMid 1 (3/100) (1/2) |||
     Tall 1 (3/100) (1/2) |||
     Mirror (Tall 1 (3/100) (1/2)) |||
-    tabbed shrinkText tabConfig |||
     Full |||
     spiral (6/7)) |||
     noBorders (fullscreenFull Full)
 
-
 ------------------------------------------------------------------------
--- Colors and borders
+-- | Colors and borders
 -- Currently based on the ir_black theme.
---
-myNormalBorderColor  = "#7c7c7c"
-myFocusedBorderColor = "#ffb6b0"
+myNormalBorderColor :: String
+myNormalBorderColor     = "#7c7c7c"
 
--- Colors for text and backgrounds of each tab when in "Tabbed" layout.
-tabConfig = defaultTheme {
-    activeBorderColor = "#7C7C7C",
-    activeTextColor = "#CEFFAC",
-    activeColor = "#000000",
+myFocusedBorderColor :: String
+myFocusedBorderColor    = "#ffb6b0"
+
+-- | Colors for text and backgrounds of each tab when in "Tabbed" layout.
+tabConfig :: Theme
+tabConfig = def {
+    activeBorderColor   = "#7C7C7C",
+    activeTextColor     = "#CEFFAC",
+    activeColor         = "#000000",
     inactiveBorderColor = "#7C7C7C",
-    inactiveTextColor = "#EEEEEE",
-    inactiveColor = "#000000"
+    inactiveTextColor   = "#EEEEEE",
+    inactiveColor       = "#000000"
 }
 
--- Color of current window title in xmobar.
-xmobarTitleColor = "#FFB6B0"
+-- | Color of current window title in xmobar.
+xmobarTitleColor :: String
+xmobarTitleColor            = "#FFB6B0"
 
--- Color of current workspace in xmobar.
+-- | Color of current workspace in xmobar.
+xmobarCurrentWorkspaceColor :: String
 xmobarCurrentWorkspaceColor = "#CEFFAC"
 
--- Width of the window border in pixels.
+-- | Width of the window border in pixels.
+myBorderWidth :: Dimension
 myBorderWidth = 1
 
 
 ------------------------------------------------------------------------
--- Key bindings
+-- | Key bindings
 --
 -- modMask lets you specify which modkey you want to use. The default
 -- is mod1Mask ("left alt").  You may also consider using mod3Mask
 -- ("right alt"), which does not conflict with emacs keybindings. The
 -- "windows key" is usually mod4Mask.
---
-myModMask = mod1Mask
+myModMask :: KeyMask
+myModMask = mod4Mask
 
 myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   ----------------------------------------------------------------------
   -- Custom key bindings
-  --
 
   -- Start a terminal.  Terminal to start is specified by myTerminal variable.
   [ ((modMask .|. shiftMask, xK_Return),
@@ -146,49 +176,68 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Lock the screen using command specified by myScreensaver.
   , ((modMask .|. controlMask, xK_l),
-     spawn myScreensaver)
+     spawn screensaver)
 
   -- Spawn the launcher using command specified by myLauncher.
   -- Use this to launch programs without a key binding.
   , ((modMask, xK_p),
-     spawn myLauncher)
+     spawn launcher)
 
   -- Take a selective screenshot using the command specified by mySelectScreenshot.
-  , ((modMask .|. shiftMask, xK_p),
-     spawn mySelectScreenshot)
+  , ((0 .|. shiftMask, xK_Print),
+     spawn selectScreenshot)
 
   -- Take a full screenshot using the command specified by myScreenshot.
-  , ((modMask .|. controlMask .|. shiftMask, xK_p),
-     spawn myScreenshot)
+  , ((0 , xK_Print),
+     spawn screenshot)
 
   -- Mute volume.
-  , ((modMask .|. controlMask, xK_m),
-     spawn "amixer -q set Master toggle")
+  , ((0, 0x1008FF12),
+     spawn "pamixer -t")
 
   -- Decrease volume.
-  , ((modMask .|. controlMask, xK_j),
-     spawn "amixer -q set Master 10%-")
+  , ((0, 0x1008FF11),
+     spawn "pamixer -d 5")
 
   -- Increase volume.
-  , ((modMask .|. controlMask, xK_k),
-     spawn "amixer -q set Master 10%+")
+  , ((0, 0x1008FF13),
+     spawn "pamixer -i 5")
 
   -- Audio previous.
   , ((0, 0x1008FF16),
-     spawn "")
+     spawn "musickeys Previous")
 
   -- Play/pause.
   , ((0, 0x1008FF14),
-     spawn "")
+     spawn "musickeys PlayPause")
+
+  --Stop
+  , ((0, 0x1008FF15),
+     spawn "musickeys Stop")
 
   -- Audio next.
   , ((0, 0x1008FF17),
-     spawn "")
+     spawn "musickeys Next")
 
   -- Eject CD tray.
   , ((0, 0x1008FF2C),
      spawn "eject -T")
 
+  -- Monitor Brightness Up
+  ,((0, 0x1008FF02),
+    spawn "xbacklight -inc 10")
+
+  -- Monitor Brightness Down
+  ,((0, 0x1008FF03),
+    spawn "xbacklight -dec 10")
+
+  -- Suspend to RAM
+  --,((0, 0x1008FF2F),
+  --  spawn "systemctl suspend")
+
+  -- Toggle WiFi On/Off
+  ,((0, 0x1008FF95),
+    spawn "eject -T")
   --------------------------------------------------------------------
   -- "Standard" xmonad key bindings
   --
@@ -216,6 +265,10 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Move focus to the next window.
   , ((modMask, xK_j),
      windows W.focusDown)
+
+  -- Move focus to the previous window.
+  , ((modMask .|. shiftMask, xK_Tab),
+     windows W.focusUp  )
 
   -- Move focus to the previous window.
   , ((modMask, xK_k),
@@ -262,7 +315,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 
   -- Quit xmonad.
   , ((modMask .|. shiftMask, xK_q),
-     io (exitWith ExitSuccess))
+     io exitSuccess)
 
   -- Restart xmonad.
   , ((modMask, xK_q),
@@ -273,7 +326,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- mod-[1..9], Switch to workspace N
   -- mod-shift-[1..9], Move client to workspace N
   [((m .|. modMask, k), windows $ f i)
-      | (i, k) <- zip (XMonad.workspaces conf) [xK_1 .. xK_9]
+      | (i, k) <- zip (XMonad.workspaces conf) $ [xK_1 .. xK_9]
       , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]]
   ++
 
@@ -292,19 +345,19 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
 myFocusFollowsMouse :: Bool
 myFocusFollowsMouse = True
 
-myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
+myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList
   [
     -- mod-button1, Set the window to floating mode and move by dragging
-    ((modMask, button1),
-     (\w -> focus w >> mouseMoveWindow w))
+   ((modMask, button1),
+     \w -> focus w >> mouseMoveWindow w)
 
     -- mod-button2, Raise the window to the top of the stack
     , ((modMask, button2),
-       (\w -> focus w >> windows W.swapMaster))
+       \w -> focus w >> windows W.swapMaster)
 
     -- mod-button3, Set the window to floating mode and resize by dragging
     , ((modMask, button3),
-       (\w -> focus w >> mouseResizeWindow w))
+       \w -> focus w >> mouseResizeWindow w)
 
     -- you may also bind events to the mouse scroll wheel (button4 and button5)
   ]
@@ -322,43 +375,44 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 
 
 ------------------------------------------------------------------------
--- Startup hook
+-- | Startup hook
 -- Perform an arbitrary action each time xmonad starts or is restarted
 -- with mod-q.  Used by, e.g., XMonad.Layout.PerWorkspace to initialize
 -- per-workspace layout choices.
 --
 -- By default, do nothing.
-myStartupHook = return ()
-
+myStartupHook :: X ()
+myStartupHook = do
+  spawn dualMonitorsCommand
+  spawn nmapplet
+  spawn emailClient
+  spawn syndaemon
+  spawn background
 
 ------------------------------------------------------------------------
--- Run xmonad with all the defaults we set up.
+-- | Run xmonad with all the defaults we set up.
 --
-main = do
-  xmproc <- spawnPipe "xmobar ~/.xmonad/xmobar.hs"
-  xmonad $ defaults {
-      logHook = dynamicLogWithPP $ xmobarPP {
-            ppOutput = hPutStrLn xmproc
-          , ppTitle = xmobarColor xmobarTitleColor "" . shorten 100
-          , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
-          , ppSep = "   "
+main :: IO ()
+main = xmonad =<< statusBar "xmobar ~/.xmonad/xmobar.hs" xmonadPP toggleStrutsKey defaults
+  where
+    toggleStrutsKey XConfig {XMonad.modMask = modKey} = (modKey,xK_b)
+    xmonadPP = xmobarPP {
+      ppTitle = xmobarColor xmobarTitleColor "" . shorten 100
+      , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
+      , ppSep = "   "
       }
-      , manageHook = manageDocks <+> myManageHook
-      , startupHook = setWMName "LG3D"
-  }
-
 
 ------------------------------------------------------------------------
--- Combine it all together
+-- | Combine it all together
 -- A structure containing your configuration settings, overriding
 -- fields in the default config. Any you don't override, will
--- use the defaults defined in xmonad/XMonad/Config.hs
+-- use the defaults defined in @xmonad/XMonad/Config.hs@
 --
 -- No need to modify this.
 --
-defaults = defaultConfig {
+defaults = def {
     -- simple stuff
-    terminal           = myTerminal,
+    terminal           = systemTerminal,
     focusFollowsMouse  = myFocusFollowsMouse,
     borderWidth        = myBorderWidth,
     modMask            = myModMask,
@@ -371,7 +425,7 @@ defaults = defaultConfig {
     mouseBindings      = myMouseBindings,
 
     -- hooks, layouts
-    layoutHook         = smartBorders $ myLayout,
-    manageHook         = myManageHook,
-    startupHook        = myStartupHook
+    layoutHook         = avoidStruts $ smartBorders myLayout,
+    manageHook         = manageDocks <+> myManageHook,
+    startupHook        = setWMName "LG3D" <+> myStartupHook
 }
