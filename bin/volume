@@ -20,8 +20,8 @@ case $vol in
 esac
 
 case $mut in
-  true) echo -e "<fc=#96CBFF>Vol:</fc><fc=#FF0000> $vol [----!!----]</fc>";;
-  *)    echo -e "<fc=#96CBFF>Vol:</fc><fc=#CEFFAC> $vol $bar</fc>" ;;
+  true) echo -e "<fc=#96CBFF>V:</fc><fc=#FF0000> $vol</fc>" ;; ##[----!!----]</fc>";;
+  *)    echo -e "<fc=#96CBFF>V:</fc><fc=#CEFFAC> $vol</fc>" ;; ##$bar</fc>" ;;
 esac
 
 

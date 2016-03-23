@@ -3,31 +3,47 @@
 # Author: Vic Fryzel
 # http://github.com/vicfryzel/xmonad-config
 
-
 # Configure PATH so that we can access our scripts below
 PATH=$PATH:~/.xmonad/bin:~/.local/bin:~/.gem/ruby/2.4.0/bin
 
-# Configure X
-xsetroot -cursor_name left_ptr &
-xrdb -merge ~/.Xdefaults &
+#Xmonad specific setups
+if [ $(echo "$DESKTOP_SESSION" | grep "xmonad") ]
+then
+    # Configure X
+    xsetroot -cursor_name left_ptr &
+    xrdb -merge ~/.Xdefaults &
 
-# Start a window compositor. This ensures Google Chrome paints correctly.
-xcompmgr -n &
+    # Start a window compositor. This ensures Google Chrome paints correctly.
+    xcompmgr -n &
 
-# Start the system tray
-tray &
+    # Start the system tray
+    tray &
 
-# Start screensaver
-# Kill gnome-screensaver if started by default
-killall gnome-screensaver &
-xscreensaver -no-splash &
+    # Starting Audio Server
+    pulseaudio --start &
 
-# Start sound server
-pulseaudio --start &
+    #Set num lock on
+    numlockx on &
 
-udiskie -at &
+    # Start screensaver
+    xscreensaver -no-splash &
+    xss-lock -- xscreensaver-command -lock &
 
-numlockx on
+    #Starting polkit agent
+    /usr/lib/polkit-kde/polkit-kde-authentication-agent-1 &
 
-exec xmonad
+    # Start automount daemon
+    udiskie -t --use-udisks2 &
 
+    
+    # Export to properly use kde apps
+    export XDG_CURRENT_DESKTOP=kde
+    
+fi
+
+#Plasma specific setups
+if [ $(echo "$DESKTOP_SESSION" | grep "plasma") ]
+then
+    echo ""
+    
+fi

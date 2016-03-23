@@ -45,10 +45,11 @@ screenshot = "screenshot"
 launcher :: String
 launcher = "$(yeganesh -x -- -fn '-*-terminus-*-r-normal-*-*-120-*-*-*-*-iso8859-*' -nb '#000000' -nf '#FFFFFF' -sb '#7C7C7C' -sf '#CEFFAC')"
 
+
 -- |Background
 -- Path to image used as background
 background :: String
-background = fehCommand ++ "~/Pictures/arch2.jpg"
+background = fehCommand ++ "~/Pictures/Image.jpg"
   where
     fehCommand = "feh --bg-scale "
 
@@ -62,7 +63,7 @@ emailClient = "thunderbird"
 
 -- | Power Manager
 battery :: String
-battery = "xfce4-power-manager"
+battery = ""
 
 -- | MousePad disable while typing
 syndaemon :: String
@@ -238,6 +239,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
   -- Toggle WiFi On/Off
   ,((0, 0x1008FF95),
     spawn "eject -T")
+
   --------------------------------------------------------------------
   -- "Standard" xmonad key bindings
   --
@@ -383,9 +385,9 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList
 -- By default, do nothing.
 myStartupHook :: X ()
 myStartupHook = do
-  spawn dualMonitorsCommand
   spawn nmapplet
   spawn emailClient
+  spawn battery
   spawn syndaemon
   spawn background
 
@@ -396,6 +398,7 @@ main :: IO ()
 main = xmonad =<< statusBar "xmobar ~/.xmonad/xmobar.hs" xmonadPP toggleStrutsKey defaults
   where
     toggleStrutsKey XConfig {XMonad.modMask = modKey} = (modKey,xK_b)
+
     xmonadPP = xmobarPP {
       ppTitle = xmobarColor xmobarTitleColor "" . shorten 100
       , ppCurrent = xmobarColor xmobarCurrentWorkspaceColor ""
