@@ -49,13 +49,13 @@ launcher = "$(yeganesh -x -- -fn '-*-terminus-*-r-normal-*-*-120-*-*-*-*-iso8859
 -- |Background
 -- Path to image used as background
 background :: String
-background = fehCommand ++ "~/Pictures/Image.jpg"
+background = "echo \"No background set\"" --fehCommand ++ "~/Pictures/Image.jpg"
   where
     fehCommand = "feh --bg-scale "
 
 -- | NetworkManager Applet
 nmapplet :: String
-nmapplet = "nm-applet"
+nmapplet = "nm-applet --no-agent" --the flag --no-agent are necessary due to freezes caused by timeout on dbus
 
 -- | Email Client
 emailClient :: String
@@ -390,7 +390,6 @@ myStartupHook = do
   spawn battery
   spawn syndaemon
   spawn background
-
 ------------------------------------------------------------------------
 -- | Run xmonad with all the defaults we set up.
 --

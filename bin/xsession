@@ -4,7 +4,7 @@
 # http://github.com/vicfryzel/xmonad-config
 
 # Configure PATH so that we can access our scripts below
-PATH=$PATH:~/.xmonad/bin:~/.local/bin:~/.gem/ruby/2.4.0/bin
+export PATH=$PATH:~/.xmonad/bin:~/.local/bin:~/.gem/ruby/2.4.0/bin:/opt/qt5pi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
 
 #Xmonad specific setups
 if [ $(echo "$DESKTOP_SESSION" | grep "xmonad") ]
@@ -19,8 +19,8 @@ then
     # Start the system tray
     tray &
 
-    # Starting Audio Server
-    pulseaudio --start &
+    # Starting Audio Server #migrate to systemd service
+    #pulseaudio --daemonize --verbose &
 
     #Set num lock on
     numlockx on &
@@ -30,11 +30,10 @@ then
     xss-lock -- xscreensaver-command -lock &
 
     #Starting polkit agent
-    /usr/lib/polkit-kde/polkit-kde-authentication-agent-1 &
+    /usr/lib/polkit-kde-authentication-agent-1 &
 
-    # Start automount daemon
-    udiskie -t --use-udisks2 &
-
+    # Start automount daemon with disabled notifications
+    udiskie -N -t --use-udisks2 &
     
     # Export to properly use kde apps
     export XDG_CURRENT_DESKTOP=kde
